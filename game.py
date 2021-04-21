@@ -1,14 +1,18 @@
 
+from minimaxplayer import MinimaxPlayer
+from randomplayer import RandomPlayer
 from deepcheckers import DeepCheckersHandler
 from keyboardplayer import *
 from randomplayer import *
 from minimaxplayer import *
 from annplayer import *
 from deepcheckers import *
-from graphics import *
+#from graphics import *
 import math
 import numpy as np
 import time
+import tensorflow as tf
+import datetime
 
 class Tile:
     def __init__(self, player, brick, id):
@@ -141,8 +145,6 @@ class Game:
             print(row)
 
     def tryMove(self, move, real):
-        if real:
-            print(move)
         piece = self.board[move[0]][move[1]]
 
         if not(isinstance(piece, Tile)):
@@ -334,9 +336,6 @@ class Game:
         return self.turn
 
     def over(self):
-        if self.available_moves(self.turn+1) == []:
-            return True, "Player " + str(self.turn + 1) + " wins"
-            
         if len(self.last_moves[(self.turn + 1) % 2]) >= 5:
             if len(set(["".join(map(str,m)) for m in self.last_moves[(self.turn + 1) % 2]])) == 2:
                 self.repetition[(self.turn + 1) % 2] = True
@@ -345,34 +344,26 @@ class Game:
             return True,"Player 2 wins"
         elif self.p2_pieces == 0 or self.repetition[1]:
             return True,"Player 1 wins"
+        elif self.available_moves(self.turn+1) == []:
+            return True,"Player " + str(2 if self.turn==0 else 1) + " wins"
         else:
             return False, ""
-    
-def main():
-    spectate = True
-    trainable = True
-    p1 = MinimaxPlayer(1)
-    if trainable:
-        del p1
-        model = DeepCheckersHandler()
-        p1 = ANNPlayer(1, model)
 
-    p2 = ANNPlayer(2,model)
-    gui = False
+def play_game(p1, p2, gui):
     if isinstance(p1, KeyboardPlayer) or isinstance(p2, KeyboardPlayer):
         gui = True
     players = [p1,p2]
     action = None
-    game = Game(gui or spectate,550,550)
+    game = Game(gui,550,550)
     game_over, status = game.over()
     
     turns = 0
     while not(game_over):
         t = game.get_turn()
-        print("Turn " + str(t))
+        #print("Turn " + str(t))
         player = players[t]
         while True:
-            game.showBoard()
+            #game.showBoard()
             action = player.getMove(game)
             if game.tryMove(action, True):
                 break
@@ -381,9 +372,62 @@ def main():
         turns = turns + 1
         #time.sleep(1)
     
-    if trainable:
-        model.train_on_batch(1 if "1" in status else 2)
     print(status)
+    return 1 if "1" in status else 2, turns
+
+def main():
+    checkers_model = DeepCheckersHandler()
+    if os.path.isfile(os.getcwd() + "/modelweights_move_mc.ckpt.data-00000-of-00001"):
+        checkers_model.model.built = True
+        checkers_model.model.load_weights(os.getcwd() + "/modelweights_move_mc.ckpt")
+        print("Loaded weights")
+
+    test_p1_loss = tf.keras.metrics.Mean('p1_random_losses', dtype=tf.float32)
+    test_p2_loss = tf.keras.metrics.Mean('p2_random_losses', dtype=tf.float32)
+    test_writer = tf.summary.create_file_writer(os.getcwd() + '/logs/test')
+    
+    p1 = ANNPlayer(1,checkers_model)
+    p2 = ANNPlayer(2,checkers_model)
+    validation_player1 = RandomPlayer(1) 
+    validation_player2 = RandomPlayer(2)
+
+    test_epoch = 0
+    turns = 0
+
+    for g in range(100000):
+        print("Game " + str(g))
+        if g % 20 == 0:
+            p1.train_mode = False
+            p2.train_mode = False
+
+            winner1 = []
+            winner2 = []
+            for i in range(10):
+                res1,_ = play_game(p1,validation_player2,False)
+                res2,_ = play_game(validation_player1, p2,False)
+                winner1.append(0 if res1 == 1 else 1)
+                winner2.append(0 if res2 == 2 else 1)
+            test_p1_loss(winner1)
+            test_p2_loss(winner2)
+
+            with test_writer.as_default():
+                tf.summary.scalar('p1_random_losses', test_p1_loss.result(), step=test_epoch)
+                tf.summary.scalar('p2_random_losses', test_p2_loss.result(), step=test_epoch)
+                tf.summary.scalar('game_train_turns', turns/20.0, step=test_epoch)
+                turns = 0
+            
+            p1.train_mode = True
+            p2.train_mode = True
+
+            test_epoch += 1
+           
+
+        w, t = play_game(p1,p2,False)
+        turns += t
+        p1.game_nr += 1
+        p2.game_nr += 1
+        p1.result(1 if w == 1 else -1)
+        p2.result(1 if w == 2 else -1)
 
 
 

@@ -22,7 +22,7 @@ class MinimaxPlayer:
             else:
                 return -10000, None
         
-        if depth == 2:
+        if depth == 1:
             rating = self.rate(game)
             return rating, None
 
