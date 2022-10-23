@@ -4,8 +4,6 @@ Copy the template, paste it to your GitHub README and edit! -->
 
 # Checkers-playing AI based on reinforcement learning and AlphaGo
 
-Final project for the Building AI course
-
 ## Summary
 
 The ultimate benchmark of any AI has since long been how it compares against humans. Games have thus historically been popular subjects for evaluating and implementing AI algorithms and ideas.
