@@ -22,27 +22,7 @@ AI solutions, MinMax in this case, beats even the very latest method from Google
 This idea is on the more theoretical side but may resolve some unknowns at least for myself. Neural networks are mystified things even for some AI experts, due to its black-box nature. Combined
 with the remarkable results in many areas (e.g. 100% realistic synthesis of human faces) it's understandable the method is sometimes treated as something supernatural or even magic.
 Recently I believe the research has begun to settle on the fact that neural network not at all are capable of "thinking" or "planning", but rather are pattern learning machines. 
-I want observe this myself, since I believe it to be healthy experiencing any method or technology fail as much as succeed. Demystifying neural networks may be achieved in this project
+I want to observe this myself, since I believe it to be healthy experiencing any method or technology fail as much as succeed. Demystifying neural networks may be achieved in this project
 by gradually moving away from the proven AlphaGo-model, leaving more responsibility for the neural network as opposed to the classic AI-algorithm of Monte Carlo Tree Search.
 
 
-## How is it used?
-
-Ideally the project is built with the use-case in mind. This would involve the ability to control which AlphaGo components to switch off or include. Also, observing the model train and 
-develop an understanding would be a nice feature, possibly highlighting interesting games along the way (by some measure, e.g. evaluated by a Checkers AlphaGo-trained model).
-
-## Challenges
-
-What does your project _not_ solve? Which limitations and ethical considerations should be taken into account when deploying a solution like this?
-
-Since the project is more suited for educational purposes, there are few ethical considerations. Perhaps it's important to not claim observations from the program to be proof of anything.
-The project does not solve whether or not neural networks on their own can build an intuition for games, but rather helps demystifying them and giving credit to old school AI algorithms (technically speaking, neural networks are also old school, i know...).
-
-## What next?
-
-Future steps could involve the expansion to more games, building a game-independent library to train AIs on user-provided games.
-
-## Acknowledgments
-
-* Google AlphaGo
-* IBM DeepBlue
